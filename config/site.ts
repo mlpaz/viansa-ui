@@ -1,28 +1,16 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Next.js + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: "Viansa Backoffice",
+  description: "Viansa tools for administration and management",
   navItems: [
     {
       label: "Home",
-      href: "/",
+      href: "/home",
     },
     {
-      label: "Docs",
-      href: "/docs",
-    },
-    {
-      label: "Pricing",
-      href: "/pricing",
-    },
-    {
-      label: "Blog",
-      href: "/blog",
-    },
-    {
-      label: "About",
-      href: "/about",
+      label: "Plants",
+      href: "/plants",
     },
   ],
   navMenuItems: [
