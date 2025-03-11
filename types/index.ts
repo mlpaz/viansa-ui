@@ -5,6 +5,7 @@ export type IconSvgProps = SVGProps<SVGSVGElement> & {
 };
 
 export type UserLogin = {
+  id: string;
   email: string;
   password: string;
 };
