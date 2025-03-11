@@ -1,3 +1,4 @@
+"use client"
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
@@ -18,8 +19,15 @@ import clsx from "clsx";
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { SearchIcon, Logo } from "@/components/icons";
+import { useRouter } from "next/navigation";
 
 export const Navbar = () => {
+  const router = useRouter();  
+  async function logout(){
+    console.log("Hola estoy en el logout");
+    await fetch("/api/logout",{method:"POST"});
+    router.push("/");
+  }
   return (
     <HeroUINavbar maxWidth="xl" position="sticky">
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
@@ -49,6 +57,7 @@ export const Navbar = () => {
 
       <NavbarContent justify="end">
         <ThemeSwitch />
+        <button onClick={logout}>logout</button>
       </NavbarContent>
     </HeroUINavbar>
   );
