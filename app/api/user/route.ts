@@ -5,11 +5,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const cookieMng = cookies();
+  const searchEmail = req.nextUrl.searchParams.get("email");
+  let url = "/api/v1/user";
+  if (searchEmail){
+    url = `${url}?email=${searchEmail}`;
+   }  
   const session: UserLoginResponse = JSON.parse(
     (await cookieMng).get("session")?.value || "{}"
   );
   console.info("token", session.token);
-  const response = await fetch(siteConfig.apiBaseUrl + "/api/v1/user", {
+  const response = await fetch(siteConfig.apiBaseUrl + url, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${session.token}`,

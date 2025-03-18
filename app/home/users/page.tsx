@@ -1,6 +1,7 @@
 "use client";
 import { UserLogin } from "@/types";
 import { Card } from "@heroui/card";
+import { Input } from "@heroui/input";
 import { Spinner } from "@heroui/spinner";
 import {
   Table,
@@ -10,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@heroui/table";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import useSWR from "swr";
 
 async function fetcher(
@@ -26,15 +27,18 @@ async function fetcher(
 
 export default function Users() {
   let url = `/api/user`;
-
+  const [searchEmail,setSearchEmail] = useState<string>("");
+  if (searchEmail){
+    url = `${url}?email=${searchEmail}`;
+   }  
   const { data, isLoading, mutate } = useSWR(`${url}`, fetcher, {
     keepPreviousData: true,
   });
   console.info(data);
   const loadingState = isLoading ? "loading" : "idle";
 
-  const items: UserLogin[] = data ?? [];
-
+  const items: UserLogin[] = data?.content ?? [];
+  
   const renderCell = useCallback((rec: UserLogin, columnKey: React.Key) => {
     const cellValue = rec[columnKey as keyof UserLogin];
 
@@ -53,11 +57,15 @@ export default function Users() {
     <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
       <h1 className="text-3xl font-bold">Users</h1>
       <Card className="mx-auto w-80 py-4">
+        <div>
+          <Input type="text" onValueChange={setSearchEmail}/>
+        </div>
         <Table
           className="max-w-[1000px]"
           aria-label="Example table with client async pagination"
           topContentPlacement="outside"
         >
+          
           <TableHeader>
             <TableColumn key="email">Email</TableColumn>
           </TableHeader>
