@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import {
   Navbar as HeroUINavbar,
   NavbarContent,
@@ -22,10 +22,9 @@ import { SearchIcon, Logo } from "@/components/icons";
 import { useRouter } from "next/navigation";
 
 export const Navbar = () => {
-  const router = useRouter();  
-  async function logout(){
-    console.log("Hola estoy en el logout");
-    await fetch("/api/logout",{method:"POST"});
+  const router = useRouter();
+  async function logout() {
+    await fetch("/api/logout", { method: "POST" });
     router.push("/");
   }
   return (

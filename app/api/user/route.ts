@@ -6,10 +6,12 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
   const cookieMng = cookies();
   const searchEmail = req.nextUrl.searchParams.get("email");
-  let url = "/api/v1/user";
-  if (searchEmail){
-    url = `${url}?email=${searchEmail}`;
-   }  
+  const page = req.nextUrl.searchParams.get("page") || "0";
+  const rows = req.nextUrl.searchParams.get("rows") || "10";
+  let url = `/api/v1/user?page=${page}&limit=${rows}`;
+  if (searchEmail) {
+    url = `${url}&email=${searchEmail}`;
+  }
   const session: UserLoginResponse = JSON.parse(
     (await cookieMng).get("session")?.value || "{}"
   );

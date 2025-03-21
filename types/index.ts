@@ -14,3 +14,8 @@ export type UserLoginResponse = {
   email: string;
   id: string;
 };
+
+export type Page<T> = {
+  content: T[];
+  totalElements: number;
+};
