@@ -31,3 +31,31 @@ export async function GET(req: NextRequest) {
   const data = await response.json();
   return NextResponse.json(data);
 }
+
+export async function POST(req: NextRequest) {
+  const cookieMng = cookies();
+  const session: UserLoginResponse = JSON.parse(
+    (await cookieMng).get("session")?.value || "{}"
+  );
+  const body: UserLogin = await req.json();
+  let method = "POST";
+  if (body.id) {
+    method = "PUT";
+  }
+  const response = await fetch(siteConfig.apiBaseUrl + "/api/v1/user", {
+    method,
+    headers: {
+      Authorization: `Bearer ${session.token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    return NextResponse.json(
+      { message: "Invalid Email or Password" },
+      { status: 401 }
+    );
+  }
+  const data = await response.json();
+  return NextResponse.json(data);
+}

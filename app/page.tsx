@@ -35,7 +35,7 @@ export default function Login() {
   return (
     <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
       <Card className="mx-auto w-80 py-4">
-        <CardHeader className="pb-0 pt-2 px-4 flex-row">
+        <CardHeader className="pb-2 pt-2 px-4 flex-row">
           <Logo />
           <h4 className="px-2 font-bold text-large">Login Viansa</h4>
         </CardHeader>

@@ -1,6 +1,5 @@
 "use client";
 import { Page, UserLogin } from "@/types";
-import { Card } from "@heroui/card";
 import { Input } from "@heroui/input";
 import { Spinner } from "@heroui/spinner";
 import {
@@ -15,11 +14,18 @@ import { useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@heroui/pagination";
+import { Button } from "@heroui/button";
+import { UpsertModal } from "@/app/home/users/upsert-modal";
+import { useDisclosure } from "@heroui/modal";
+import { Trash2, Edit } from "react-feather";
 
 export default function Users() {
   const router = useRouter();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState(10);
+  const [refresh, setRefresh] = useState(false);
+  const [input, setInput] = useState<UserLogin>({ email: "", password: "" });
 
   let url = `/api/user?page=${page - 1}&rows=${rows}`;
   console.info(url);
@@ -42,30 +48,78 @@ export default function Users() {
     return data;
   }
 
-  const { data, isLoading, mutate } = useSWR(`${url}`, fetcher, {
+  async function upsertHandler(input: UserLogin) {
+    const res = await fetch("/api/user", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+    if (!res.ok) {
+      await fetch("/api/logout", { method: "POST" });
+      router.push("/");
+    }
+    setRefresh(!refresh);
+  }
+
+  async function deleteHandler(id: string) {
+    const res = await fetch(`/api/user/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!res.ok) {
+      await fetch("/api/logout", { method: "POST" });
+      router.push("/");
+    }
+    mutate();
+  }
+
+  const { data, isLoading, mutate, isValidating } = useSWR(`${url}`, fetcher, {
     keepPreviousData: true,
   });
+
   const pages = useMemo(() => {
     return data?.totalElements ? Math.ceil(data.totalElements / rows) : 0;
-  }, [data?.totalElements, rows]);
+  }, [data?.totalElements, rows, refresh]);
+
   console.info(data);
   const loadingState = isLoading ? "loading" : "idle";
 
   const items: UserLogin[] = data?.content ?? [];
 
-  const renderCell = useCallback((rec: UserLogin, columnKey: React.Key) => {
-    const cellValue = rec[columnKey as keyof UserLogin];
+  const renderCell = useCallback(
+    (rec: UserLogin, columnKey: React.Key) => {
+      const cellValue = rec[columnKey as keyof UserLogin];
 
-    if (columnKey === "action") {
-      return (
-        <div className="relative flex items-center justify-center gap-4">
-          Actions
-        </div>
-      );
-    } else {
-      return <> {cellValue} </>;
-    }
-  }, []);
+      if (columnKey === "actions") {
+        return (
+          <div className="relative flex items-center justify-arround gap-4">
+            <Edit
+              size={18}
+              className="cursor-pointer"
+              onClick={() => {
+                setInput(rec);
+                onOpen();
+              }}
+            />
+            <Trash2
+              size={18}
+              className="cursor-pointer"
+              onClick={() => {
+                deleteHandler(rec?.id || "");
+              }}
+            />
+          </div>
+        );
+      } else {
+        return <> {cellValue} </>;
+      }
+    },
+    [refresh]
+  );
 
   const onRowsPerPageChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -77,15 +131,15 @@ export default function Users() {
 
   const filters = useMemo(
     () => (
-      <div className="px-2">
-        <h3>Filters</h3>
-        <div className="py-2 ">
+      <div>
+        <h2 className="text-xl font-bold">Filters</h2>
+        <div>
           <Input
             label="Email"
             type="text"
             onValueChange={setSearchEmail}
-            labelPlacement="outside"
             size="sm"
+            className="w-48 mx-auto mt-2"
           />
         </div>
       </div>
@@ -95,7 +149,7 @@ export default function Users() {
 
   const pagination = useMemo(
     () => (
-      <div className="flex w-full justify-between">
+      <div className="flex w-full justify-between gap-2">
         <span className="flex flex-1 items-center text-default-400 text-small">
           Total: <b className="ml-1"> {data?.totalElements} </b>
         </span>
@@ -124,39 +178,56 @@ export default function Users() {
         </label>
       </div>
     ),
-    []
+    [data?.totalElements, page, pages, refresh]
   );
 
   return (
     <main className="container mx-auto max-w-7xl pt-16 px-6 flex-grow">
-      <h1 className="text-3xl font-bold">Users</h1>
-      <Card className="mx-auto w-80 py-4">
-        <Table
-          className="max-w-[1000px]"
-          aria-label="Example table with client async pagination"
-          topContentPlacement="outside"
-          topContent={filters}
-          bottomContent={pagination}
+      <UpsertModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        input={input}
+        setInput={setInput}
+        upsertHandler={upsertHandler}
+      />
+      <section className="flex justify-center items-center relative mb-6">
+        <h1 className="text-3xl font-bold text-center">Users</h1>
+        <Button
+          onPress={() => {
+            setInput({ email: "", password: "" });
+            onOpen();
+          }}
+          className="absolute right-0"
         >
-          <TableHeader>
-            <TableColumn key="email">Email</TableColumn>
-          </TableHeader>
-          <TableBody
-            items={items}
-            emptyContent={"No records to display."}
-            loadingContent={<Spinner />}
-            loadingState={loadingState}
-          >
-            {(item) => (
-              <TableRow key={item?.id}>
-                {(columnKey) => (
-                  <TableCell>{renderCell(item, columnKey)}</TableCell>
-                )}
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+          Add User
+        </Button>
+      </section>
+
+      <Table
+        className="mx-auto w-80 py-4 px-2"
+        aria-label="Example table with client async pagination"
+        topContent={filters}
+        bottomContent={pagination}
+      >
+        <TableHeader>
+          <TableColumn key="email">Email</TableColumn>
+          <TableColumn key="actions">Actions</TableColumn>
+        </TableHeader>
+        <TableBody
+          items={items}
+          emptyContent={"No records to display."}
+          loadingContent={<Spinner />}
+          loadingState={loadingState}
+        >
+          {(item) => (
+            <TableRow key={item?.id}>
+              {(columnKey) => (
+                <TableCell>{renderCell(item, columnKey)}</TableCell>
+              )}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </main>
   );
 }
