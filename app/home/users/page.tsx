@@ -204,7 +204,7 @@ export default function Users() {
       </section>
 
       <Table
-        className="mx-auto w-80 py-4 px-2"
+        className="mx-auto py-4 px-2 min-w-[400px] max-w-[600px]"
         aria-label="Example table with client async pagination"
         topContent={filters}
         bottomContent={pagination}
