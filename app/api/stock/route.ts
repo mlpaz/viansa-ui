@@ -1,5 +1,5 @@
 import { siteConfig } from "@/config/site";
-import { Plant, UserLoginResponse } from "@/types";
+import { Stock, UserLogin, UserLoginResponse } from "@/types";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -8,11 +8,10 @@ export async function GET(req: NextRequest) {
   const searchEmail = req.nextUrl.searchParams.get("name");
   const page = req.nextUrl.searchParams.get("page") || "0";
   const rows = req.nextUrl.searchParams.get("rows") || "10";
-  let url = `/api/v1/plant?page=${page}&limit=${rows}`;
+  let url = `/api/v1/stock?page=${page}&limit=${rows}`;
   if (searchEmail) {
     url = `${url}&name=${searchEmail}`;
   }
-  console.log(url);
   const session: UserLoginResponse = JSON.parse(
     (await cookieMng).get("session")?.value || "{}"
   );
@@ -37,12 +36,12 @@ export async function POST(req: NextRequest) {
   const session: UserLoginResponse = JSON.parse(
     (await cookieMng).get("session")?.value || "{}"
   );
-  const body: Plant = await req.json();
+  const body: Stock = await req.json();
   let method = "POST";
   if (body.id) {
     method = "PUT";
   }
-  const response = await fetch(siteConfig.apiBaseUrl + "/api/v1/plant", {
+  const response = await fetch(siteConfig.apiBaseUrl + "/api/v1/stock", {
     method,
     headers: {
       Authorization: `Bearer ${session.token}`,

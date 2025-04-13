@@ -33,7 +33,6 @@ export default function Plants() {
   const [input, setInput] = useState<Plant>({ name: "", type: "" });
 
   let url = `/api/plant?page=${page - 1}&rows=${rows}`;
-  console.info(url);
   const [searchName, setSearchName] = useState<string>("");
   if (searchName) {
     url = `${url}&name=${searchName}`;
@@ -44,7 +43,6 @@ export default function Plants() {
     init?: RequestInit
   ): Promise<Page<Plant>> {
     const res = await fetch(input, init);
-    console.info("res.ok");
     if (!res.ok) {
       await fetch("/api/logout", { method: "POST" });
       router.push("/");
@@ -90,7 +88,6 @@ export default function Plants() {
     return data?.totalElements ? Math.ceil(data.totalElements / rows) : 0;
   }, [data?.totalElements, rows]);
 
-  console.info(data);
   const loadingState = isLoading ? "loading" : "idle";
 
   const items: Plant[] = data?.content ?? [];
@@ -202,6 +199,7 @@ export default function Plants() {
       <section className="flex justify-center items-center relative mb-6">
         <h1 className="text-3xl font-bold text-center">Plants</h1>
         <Button
+          color="primary"
           onPress={() => {
             setInput({ name: "", type: "" });
             onOpen();

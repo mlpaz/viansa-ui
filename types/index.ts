@@ -12,8 +12,15 @@ export type UserLogin = {
 
 export type Plant = {
   id?: string;
-  name: string;
-  type: string;
+  name?: string;
+  type?: string;
+};
+
+export type Stock = {
+  id?: string;
+  price: number;
+  amount: number;
+  plant?: Plant;
 };
 
 export type UserLoginResponse = {
@@ -25,4 +32,10 @@ export type UserLoginResponse = {
 export type Page<T> = {
   content: T[];
   totalElements: number;
+};
+
+export type AutocompleteField = {
+  label: string;
+  key: string;
+  description?: string;
 };

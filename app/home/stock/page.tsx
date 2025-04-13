@@ -1,5 +1,5 @@
 "use client";
-import { Page, UserLogin } from "@/types";
+import { Page, Stock } from "@/types";
 import { Input } from "@heroui/input";
 import { Spinner } from "@heroui/spinner";
 import {
@@ -15,12 +15,12 @@ import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@heroui/pagination";
 import { Button } from "@heroui/button";
-import { UpsertModal } from "@/app/home/users/upsert-modal";
-import { DeleteModal } from "@/app/home/users/delete-modal";
+import { UpsertModal } from "@/app/home/stock/upsert-modal";
+import { DeleteModal } from "@/app/home/stock/delete-modal";
 import { useDisclosure } from "@heroui/modal";
 import { Trash2, Edit } from "react-feather";
 
-export default function Users() {
+export default function Stock() {
   const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
@@ -30,30 +30,32 @@ export default function Users() {
   } = useDisclosure();
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState(10);
-  const [refresh, setRefresh] = useState(false);
-  const [input, setInput] = useState<UserLogin>({ email: "", password: "" });
+  const [input, setInput] = useState<Stock>({
+    price: 0,
+    amount: 0,
+  });
 
-  let url = `/api/user?page=${page - 1}&rows=${rows}`;
-  const [searchEmail, setSearchEmail] = useState<string>("");
-  if (searchEmail) {
-    url = `${url}&email=${searchEmail}`;
+  let url = `/api/stock?page=${page - 1}&rows=${rows}`;
+  const [searchName, setSearchName] = useState<string>("");
+  if (searchName) {
+    url = `${url}&name=${searchName}`;
   }
 
   async function fetcher(
     input: RequestInfo,
     init?: RequestInit
-  ): Promise<Page<UserLogin>> {
+  ): Promise<Page<Stock>> {
     const res = await fetch(input, init);
     if (!res.ok) {
       await fetch("/api/logout", { method: "POST" });
       router.push("/");
     }
-    const data: Page<UserLogin> = await res.json();
+    const data: Page<Stock> = await res.json();
     return data;
   }
 
-  async function upsertHandler(input: UserLogin) {
-    const res = await fetch("/api/user", {
+  async function upsertHandler(input: Stock) {
+    const res = await fetch("/api/stock", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -64,11 +66,11 @@ export default function Users() {
       await fetch("/api/logout", { method: "POST" });
       router.push("/");
     }
-    setRefresh(!refresh);
+    mutate();
   }
 
   async function deleteHandler(id: string) {
-    const res = await fetch(`/api/user/${id}`, {
+    const res = await fetch(`/api/stock/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -87,43 +89,47 @@ export default function Users() {
 
   const pages = useMemo(() => {
     return data?.totalElements ? Math.ceil(data.totalElements / rows) : 0;
-  }, [data?.totalElements, rows, refresh]);
+  }, [data?.totalElements, rows]);
 
   const loadingState = isLoading ? "loading" : "idle";
 
-  const items: UserLogin[] = data?.content ?? [];
+  const items: Stock[] = data?.content ?? [];
 
-  const renderCell = useCallback(
-    (rec: UserLogin, columnKey: React.Key) => {
-      const cellValue = rec[columnKey as keyof UserLogin];
+  const renderCell = useCallback((rec: any, columnKey: any) => {
+    console.log(columnKey);
+    const split = columnKey.split(".");
+    if (split.length > 1) {
+      const cellValue = rec[split[0]][split[1]];
+      return <> {cellValue} </>;
+    }
 
-      if (columnKey === "actions") {
-        return (
-          <div className="relative flex items-center justify-arround gap-4">
-            <Edit
-              size={18}
-              className="cursor-pointer"
-              onClick={() => {
-                setInput(rec);
-                onOpen();
-              }}
-            />
-            <Trash2
-              size={18}
-              className="cursor-pointer"
-              onClick={() => {
-                setInput(rec);
-                onOpenDelete();
-              }}
-            />
-          </div>
-        );
-      } else {
-        return <> {cellValue} </>;
-      }
-    },
-    [refresh]
-  );
+    const cellValue = rec[columnKey as keyof Stock];
+
+    if (columnKey === "actions") {
+      return (
+        <div className="relative flex items-center justify-arround gap-4">
+          <Edit
+            size={18}
+            className="cursor-pointer"
+            onClick={() => {
+              setInput(rec);
+              onOpen();
+            }}
+          />
+          <Trash2
+            size={18}
+            className="cursor-pointer"
+            onClick={() => {
+              setInput(rec);
+              onOpenDelete();
+            }}
+          />
+        </div>
+      );
+    } else {
+      return <> {cellValue} </>;
+    }
+  }, []);
 
   const onRowsPerPageChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -139,9 +145,9 @@ export default function Users() {
         <h2 className="text-xl font-bold">Filters</h2>
         <div>
           <Input
-            label="Email"
+            label="Name"
             type="text"
-            onValueChange={setSearchEmail}
+            onValueChange={setSearchName}
             size="sm"
             className="w-48 mx-auto mt-2"
           />
@@ -182,7 +188,7 @@ export default function Users() {
         </label>
       </div>
     ),
-    [data?.totalElements, page, pages, refresh]
+    [data?.totalElements, page, pages]
   );
 
   return (
@@ -201,16 +207,16 @@ export default function Users() {
         deleteHandler={deleteHandler}
       />
       <section className="flex justify-center items-center relative mb-6">
-        <h1 className="text-3xl font-bold text-center">Users</h1>
+        <h1 className="text-3xl font-bold text-center">Stocks</h1>
         <Button
           color="primary"
           onPress={() => {
-            setInput({ email: "", password: "" });
+            setInput({ amount: 0, price: 0 });
             onOpen();
           }}
           className="absolute right-0"
         >
-          Add User
+          Add Stock
         </Button>
       </section>
 
@@ -221,7 +227,10 @@ export default function Users() {
         bottomContent={pagination}
       >
         <TableHeader>
-          <TableColumn key="email">Email</TableColumn>
+          <TableColumn key="amount">Amount</TableColumn>
+          <TableColumn key="price">Price</TableColumn>
+          <TableColumn key="plant.name">Name</TableColumn>
+          <TableColumn key="plant.type">Type</TableColumn>
           <TableColumn key="actions">Actions</TableColumn>
         </TableHeader>
         <TableBody
