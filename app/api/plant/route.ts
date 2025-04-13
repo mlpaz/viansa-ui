@@ -5,12 +5,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   const cookieMng = cookies();
-  const searchEmail = req.nextUrl.searchParams.get("email");
+  const searchEmail = req.nextUrl.searchParams.get("name");
   const page = req.nextUrl.searchParams.get("page") || "0";
   const rows = req.nextUrl.searchParams.get("rows") || "10";
-  let url = `/api/v1/user?page=${page}&limit=${rows}`;
+  let url = `/api/v1/plant?page=${page}&limit=${rows}`;
   if (searchEmail) {
-    url = `${url}&email=${searchEmail}`;
+    url = `${url}&name=${searchEmail}`;
   }
   const session: UserLoginResponse = JSON.parse(
     (await cookieMng).get("session")?.value || "{}"
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
   if (body.id) {
     method = "PUT";
   }
-  const response = await fetch(siteConfig.apiBaseUrl + "/api/v1/user", {
+  const response = await fetch(siteConfig.apiBaseUrl + "/api/v1/plant", {
     method,
     headers: {
       Authorization: `Bearer ${session.token}`,

@@ -9,6 +9,13 @@ export type UserLogin = {
   email: string;
   password: string;
 };
+
+export type Plant = {
+  id?: string;
+  name: string;
+  type: string;
+};
+
 export type UserLoginResponse = {
   token: string;
   email: string;
