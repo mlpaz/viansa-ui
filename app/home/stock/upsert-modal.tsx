@@ -22,7 +22,7 @@ export const UpsertModal = ({
   upsertHandler: (input: Stock) => void;
 }) => {
   const router = useRouter();
-  let url = `/api/plant?rows=2`;
+  let url = `/api/plant?rows=10`;
   const [searchName, setSearchName] = useState<string>("");
   const [isLoadingPlants, setIsLoadingPlants] = useState<boolean>(false);
   const [autocompleteField, setAutocompleteField] =
