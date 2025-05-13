@@ -10,10 +10,38 @@ export type UserLogin = {
   password: string;
 };
 
+export type ISelectOption = {
+  key: string;
+  label: string;
+};
+
 export type Plant = {
   id?: string;
   name?: string;
   type?: string;
+};
+
+export type City = {
+  id?: string;
+  name: string;
+};
+
+export type Location = {
+  id?: string;
+  name?: string;
+  city?: City;
+};
+
+export type Client = {
+  id?: string;
+  coordG?: string;
+  name: string;
+  surname: string;
+  email?: string;
+  cellphone: string;
+  notation?: string;
+  cuitCuil: number;
+  location: Location;
 };
 
 export type Stock = {

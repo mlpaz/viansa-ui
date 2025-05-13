@@ -6,14 +6,13 @@ import {
   NavbarItem,
 } from "@heroui/navbar";
 
-import { Input } from "@heroui/input";
 import { link as linkStyles } from "@heroui/theme";
 import NextLink from "next/link";
 import clsx from "clsx";
 
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { SearchIcon, Logo } from "@/components/icons";
+import { Logo } from "@/components/icons";
 import { useRouter } from "next/navigation";
 
 export const Navbar = () => {

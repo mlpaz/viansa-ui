@@ -1,12 +1,13 @@
 "use client";
 import { ModalContent, ModalHeader, ModalFooter, Modal } from "@heroui/modal";
 import { Button } from "@heroui/button";
-import { Stock, AutocompleteField, Plant } from "@/types";
+import { Stock, AutocompleteField, Plant, Page } from "@/types";
 import { Input } from "@heroui/input";
-import { Autocomplete, AutocompleteItem, Page } from "@heroui/autocomplete";
+import { Autocomplete, AutocompleteItem } from "@heroui/autocomplete";
 import { useState } from "react";
 import useSWR from "swr";
 import { useRouter } from "next/navigation";
+import { AsyncAutocomplete } from "@/components/asycAutocomplete";
 
 export const UpsertModal = ({
   isOpen,
@@ -21,61 +22,14 @@ export const UpsertModal = ({
   setInput: (input: Stock) => void;
   upsertHandler: (input: Stock) => void;
 }) => {
-  const router = useRouter();
   let url = `/api/plant?rows=10`;
-  const [searchName, setSearchName] = useState<string>("");
-  const [isLoadingPlants, setIsLoadingPlants] = useState<boolean>(false);
-  const [autocompleteField, setAutocompleteField] =
-    useState<AutocompleteField | null>(null);
-  if (searchName) {
-    url = `${url}&name=${searchName}`;
-  }
-  async function fetcher(
-    input: RequestInfo,
-    init?: RequestInit
-  ): Promise<AutocompleteField[]> {
-    const res = await fetch(input, init);
-    if (!res.ok) {
-      await fetch("/api/logout", { method: "POST" });
-      router.push("/");
-    }
-    const data: Page<Plant> = await res.json();
-    const autocompleteData: AutocompleteField[] = data.content.map(
-      (item: Plant) => ({
-        label: item.name + " - " + item.type,
-        key: item.id,
-        description: "Plant " + item.name + " with type " + item.type + ".",
-      })
-    );
 
-    setIsLoadingPlants(false);
-    return autocompleteData;
-  }
-  const {
-    data: plants,
-    isLoading,
-    mutate,
-    isValidating,
-  } = useSWR(`${url}`, fetcher, {
-    keepPreviousData: true,
-  });
-
-  const onSelectionChange = (id: any) => {
-    console.info("key changed to:", id);
-    setInput({ ...input, plant: { id: id } });
-    // find element in autocompleteField
-    const selectedPlant = plants?.find((item: any) => item.key === id);
-    if (!selectedPlant) {
-      return;
-    }
-    setAutocompleteField(selectedPlant);
+  const setValue = (id: string) => {
+    setInput({ ...input, plant: { id } });
   };
 
-  const onInputChange = (value: string) => {
-    setIsLoadingPlants(true);
-
-    setSearchName(value);
-    mutate();
+  const addLabel = (input: Plant) => {
+    return input.name + " - " + input.type;
   };
 
   const title = input.id ? "Edit Stock" : "Add Stock";
@@ -109,22 +63,14 @@ export const UpsertModal = ({
                 />
               </div>
               <div className="flex gap-2">
-                <Autocomplete
-                  allowsCustomValue={true}
-                  defaultItems={plants}
+                <AsyncAutocomplete<Plant>
+                  url={url}
+                  value={input.plant}
+                  setValue={setValue}
                   label="Plant"
-                  placeholder="Search a plant"
-                  onInputChange={onInputChange}
-                  onSelectionChange={onSelectionChange}
-                  isLoading={isLoadingPlants}
-                  description={autocompleteField?.description || "-"}
-                >
-                  {(item) => (
-                    <AutocompleteItem key={item.key}>
-                      {item.label}
-                    </AutocompleteItem>
-                  )}
-                </Autocomplete>
+                  placeholder="Search a plant..."
+                  addLabel={addLabel}
+                />
               </div>
             </section>
             <ModalFooter className="flex justify-between mt-2">

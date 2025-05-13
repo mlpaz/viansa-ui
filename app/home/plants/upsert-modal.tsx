@@ -1,8 +1,14 @@
 "use client";
 import { ModalContent, ModalHeader, ModalFooter, Modal } from "@heroui/modal";
 import { Button } from "@heroui/button";
-import { Plant } from "@/types";
+import { ISelectOption, Plant } from "@/types";
 import { Input } from "@heroui/input";
+import { Select, SelectItem } from "@heroui/select";
+
+export const types: ISelectOption[] = [
+  { key: "A", label: "A" },
+  { key: "B", label: "B" },
+];
 
 export const UpsertModal = ({
   isOpen,
@@ -18,6 +24,10 @@ export const UpsertModal = ({
   upsertHandler: (input: Plant) => void;
 }) => {
   const title = input.id ? "Edit Plant" : "Add Plant";
+  const defaultSelectedKeys: string[] = [];
+  if (input.type) {
+    defaultSelectedKeys.push(input.type);
+  }
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop={"blur"}>
       <ModalContent className="px-2">
@@ -34,13 +44,20 @@ export const UpsertModal = ({
                 value={input.name}
                 onChange={(e) => setInput({ ...input, name: e.target.value })}
               />
-              <Input
-                label="Type"
-                placeholder="Enter Plant Type"
-                type="string"
+              <Select
                 value={input.type}
-                onChange={(e) => setInput({ ...input, type: e.target.value })}
-              />
+                defaultSelectedKeys={defaultSelectedKeys}
+                className="max-w-xs"
+                label="Type"
+                placeholder="Select a Type"
+                onChange={(e: any) =>
+                  setInput({ ...input, type: e.target.value })
+                }
+              >
+                {types.map((type) => (
+                  <SelectItem key={type.key}>{type.label}</SelectItem>
+                ))}
+              </Select>
             </section>
             <ModalFooter className="flex justify-between mt-2">
               <Button

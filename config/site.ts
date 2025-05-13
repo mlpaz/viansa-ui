@@ -21,5 +21,9 @@ export const siteConfig = {
       label: "Stock",
       href: "/home/stock",
     },
+    {
+      label: "Client",
+      href: "/home/clients",
+    },
   ],
 };

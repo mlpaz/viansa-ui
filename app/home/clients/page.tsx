@@ -1,5 +1,5 @@
 "use client";
-import { Page, Stock } from "@/types";
+import { Client, Page } from "@/types";
 import { Input } from "@heroui/input";
 import { Spinner } from "@heroui/spinner";
 import {
@@ -15,12 +15,20 @@ import useSWR from "swr";
 import { useRouter } from "next/navigation";
 import { Pagination } from "@heroui/pagination";
 import { Button } from "@heroui/button";
-import { UpsertModal } from "@/app/home/stock/upsert-modal";
-import { DeleteModal } from "@/app/home/stock/delete-modal";
+import { UpsertModal } from "@/app/home/clients/upsert-modal";
+import { DeleteModal } from "@/app/home/clients/delete-modal";
 import { useDisclosure } from "@heroui/modal";
 import { Trash2, Edit } from "react-feather";
 
-export default function Stock() {
+const emptyClient: Client = {
+  name: "",
+  surname: "",
+  cellphone: "",
+  cuitCuil: 0,
+  location: { id: "", name: "", city: { id: "", name: "" } },
+};
+
+export default function Clients() {
   const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
@@ -30,12 +38,9 @@ export default function Stock() {
   } = useDisclosure();
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState(10);
-  const [input, setInput] = useState<Stock>({
-    price: 0,
-    amount: 0,
-  });
+  const [input, setInput] = useState<Client>(emptyClient);
 
-  let url = `/api/stock?page=${page - 1}&rows=${rows}`;
+  let url = `/api/client?page=${page - 1}&rows=${rows}`;
   const [searchName, setSearchName] = useState<string>("");
   if (searchName) {
     url = `${url}&name=${searchName}`;
@@ -44,19 +49,18 @@ export default function Stock() {
   async function fetcher(
     input: RequestInfo,
     init?: RequestInit
-  ): Promise<Page<Stock>> {
+  ): Promise<Page<Client>> {
     const res = await fetch(input, init);
     if (!res.ok) {
       await fetch("/api/logout", { method: "POST" });
       router.push("/");
     }
-    const data: Page<Stock> = await res.json();
+    const data: Page<Client> = await res.json();
     return data;
   }
 
-  async function upsertHandler(input: Stock) {
-    console.info("upsertHandler", input);
-    const res = await fetch("/api/stock", {
+  async function upsertHandler(input: Client) {
+    const res = await fetch("/api/client", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -71,7 +75,7 @@ export default function Stock() {
   }
 
   async function deleteHandler(id: string) {
-    const res = await fetch(`/api/stock/${id}`, {
+    const res = await fetch(`/api/client/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -94,7 +98,7 @@ export default function Stock() {
 
   const loadingState = isLoading ? "loading" : "idle";
 
-  const items: Stock[] = data?.content ?? [];
+  const items: Client[] = data?.content ?? [];
 
   const renderCell = useCallback((rec: any, columnKey: any) => {
     const split = columnKey.split(".");
@@ -103,7 +107,7 @@ export default function Stock() {
       return <> {cellValue} </>;
     }
 
-    const cellValue = rec[columnKey as keyof Stock];
+    const cellValue = rec[columnKey as keyof Client];
 
     if (columnKey === "actions") {
       return (
@@ -207,30 +211,32 @@ export default function Stock() {
         deleteHandler={deleteHandler}
       />
       <section className="flex justify-center items-center relative mb-6">
-        <h1 className="text-3xl font-bold text-center">Stocks</h1>
+        <h1 className="text-3xl font-bold text-center">Clients</h1>
         <Button
           color="primary"
           onPress={() => {
-            setInput({ amount: 0, price: 0 });
+            setInput(emptyClient);
             onOpen();
           }}
           className="absolute right-0"
         >
-          Add Stock
+          Add Client
         </Button>
       </section>
 
       <Table
-        className="mx-auto py-4 px-2 min-w-[400px] max-w-[600px]"
+        className="mx-auto py-4 px-2 min-w-[400px] max-w-[800px]"
         aria-label="Example table with client async pagination"
         topContent={filters}
         bottomContent={pagination}
       >
         <TableHeader>
-          <TableColumn key="amount">Amount</TableColumn>
-          <TableColumn key="price">Price</TableColumn>
-          <TableColumn key="plant.name">Name</TableColumn>
-          <TableColumn key="plant.type">Type</TableColumn>
+          <TableColumn key="name">Name</TableColumn>
+          <TableColumn key="surname">Surname</TableColumn>
+          <TableColumn key="location.name">Location</TableColumn>
+          <TableColumn key="cuitCuil">Cuit - Cuil</TableColumn>
+          <TableColumn key="email">Email</TableColumn>
+          <TableColumn key="cellphone">Cellphone</TableColumn>
           <TableColumn key="actions">Actions</TableColumn>
         </TableHeader>
         <TableBody
